@@ -259,6 +259,12 @@ describe('rendering', () => {
     assert.ok(html.includes('<meta charset="utf-8">'));
   });
 
+  it('the Turkish privacy page names the country in Turkish', () => {
+    const html = page('tr/privacy/index.html');
+    assert.ok(html.includes(`${VALID.city}, Almanya. E-posta:`));
+    assert.ok(!html.includes(VALID.countryEn));
+  });
+
   it('a value with a dollar sign stays as it is', () => {
     assert.equal(fill('{{name}}', { name: "$& $1 $'" }), '$&amp; $1 $&#39;');
   });
