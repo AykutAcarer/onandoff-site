@@ -1,0 +1,15 @@
+{
+  "name": "onandoff-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Legal and support website of the On & Off iPhone app",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "node build.mjs --preview",
+    "test": "node --test"
+  }
+}
