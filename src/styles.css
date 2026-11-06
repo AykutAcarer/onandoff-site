@@ -4,6 +4,12 @@
   --text: #1C1C1E;
   --secondary: #5B5B60;
   --link: #2F3A48;
+  /* Accents of the home page. Borders only: no text is written in or on them. */
+  --coral: #E5534B;
+  --green: #2FA874;
+  --blue: #2F86E8;
+  /* The background of the privacy note, a light green. */
+  --tint: #EEF7F2;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -12,6 +18,7 @@
     --text: #F2F2F7;
     --secondary: #A1A1A6;
     --link: #C9D3DE;
+    --tint: #0E1F17;
   }
 }
 
@@ -98,4 +105,144 @@ footer {
 
 footer p {
   margin: 0.75rem 0 0;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Home page */
+
+.hero {
+  margin: 2rem 0 1rem;
+  text-align: center;
+}
+
+.app-icon {
+  display: block;
+  margin: 0 auto 1rem;
+  border-radius: 22.5%;
+}
+
+.hero h1 {
+  margin: 0 0 0.25rem;
+}
+
+.tagline {
+  margin: 0 0 0.75rem;
+  color: var(--secondary);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.lead {
+  font-size: 1.125rem;
+}
+
+.availability {
+  display: inline-block;
+  margin: 0.25rem 0 1rem;
+  padding: 0.25rem 1rem;
+  border: 0.125rem solid var(--blue);
+  border-radius: 999rem;
+  font-weight: 600;
+}
+
+.store {
+  margin: 0 0 1rem;
+}
+
+/* Clear space around the badge: 0.75rem is a quarter of its 48 px height. */
+.store-badge {
+  display: inline-block;
+  padding: 0.75rem;
+}
+
+.store-badge img {
+  display: block;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  gap: 1.5rem;
+  margin: 2.5rem 0;
+}
+
+.feature {
+  padding-top: 0.75rem;
+  border-top: 0.25rem solid var(--accent);
+}
+
+.feature h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+}
+
+.feature p {
+  margin: 0;
+}
+
+.feature-coral {
+  --accent: var(--coral);
+}
+
+.feature-green {
+  --accent: var(--green);
+}
+
+.feature-blue {
+  --accent: var(--blue);
+}
+
+/* Narrow screens: a row that scrolls on its own, so the page never does. */
+.shots {
+  display: flex;
+  gap: 1rem;
+  margin: 2.5rem -1rem;
+  padding: 0 1rem 0.75rem;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 1rem;
+}
+
+.shots li {
+  flex: none;
+  scroll-snap-align: start;
+}
+
+.shots img {
+  display: block;
+  max-width: none;
+  border-radius: 1rem;
+}
+
+/* Wide screens: the three side by side, each at most its own width. */
+@media (min-width: 44rem) {
+  .shots {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: 2.5rem 0;
+    padding: 0;
+    overflow-x: visible;
+  }
+
+  .shots img {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.privacy-note {
+  margin: 2.5rem 0 0;
+  padding: 1.25rem 1.25rem 0.25rem;
+  border-left: 0.25rem solid var(--green);
+  border-radius: 0.75rem;
+  background: var(--tint);
+}
+
+.privacy-note h2 {
+  margin: 0 0 0.5rem;
 }
