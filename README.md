@@ -1,46 +1,68 @@
-# On & Off website
+# On & Off — website
 
-The home page and the legal and support pages of the On & Off iPhone app: home, privacy policy, terms of use, support (English and Turkish) and Impressum (German and English).
+Landing page, privacy policy, terms of use, support and legal notice for the On & Off iPhone app.
 
-Published with GitHub Pages from `main` / `docs`: https://aykutacarer.github.io/onandoff-site/
+## Live pages
 
-The pages are static: no JavaScript, no cookies, no analytics and no external requests. Images come only from the site itself. The generator is one Node script with no dependencies (Node 22 or newer).
+| Page | URL |
+| --- | --- |
+| Landing page (English) | https://aykutacarer.github.io/onandoff-site/ |
+| Landing page (Turkish) | https://aykutacarer.github.io/onandoff-site/tr/ |
+| Privacy policy (English) | https://aykutacarer.github.io/onandoff-site/privacy/ |
+| Privacy policy (Turkish) | https://aykutacarer.github.io/onandoff-site/tr/privacy/ |
+| Terms of use (English) | https://aykutacarer.github.io/onandoff-site/terms/ |
+| Terms of use (Turkish) | https://aykutacarer.github.io/onandoff-site/tr/terms/ |
+| Support (English) | https://aykutacarer.github.io/onandoff-site/support/ |
+| Support (Turkish) | https://aykutacarer.github.io/onandoff-site/tr/support/ |
+| Impressum (German and English, one page) | https://aykutacarer.github.io/onandoff-site/impressum/ |
+
+## How it works
+
+- `src/` is the source: `layout.html`, `partials/` (header and footers), `pages/` (one template per page and language), `styles.css` and `img/`.
+- `build.mjs` validates the configuration, renders every page and writes the result to `docs/`. It has no dependencies.
+- GitHub Pages serves `docs/` from the `main` branch.
+- Do not edit `docs/` by hand: the next build deletes and rewrites it.
 
 ## Build
 
-1. Copy `identity.example.json` to `identity.json` and fill it in. `identity.json` is git-ignored. `phone` and `vatId` are optional.
-2. Run `node build.mjs`. It writes `docs/`, and refuses to build with missing or placeholder data, or with an invalid `site.config.json`.
+Requires Node 22 or newer. There are no dependencies to install.
 
-## Preview
+```sh
+npm run build     # node build.mjs: writes docs/
+npm run preview   # node build.mjs --preview: uses identity.example.json, writes preview/ (git-ignored)
+npm test          # node --test
+```
 
-Run `node build.mjs --preview`. It uses the example values and writes `preview/`, which is git-ignored, and never touches `docs/`.
+## Configuration
 
-## Test
+**`site.config.json`** holds `appStoreUrl` and `badges` (the badge file of each language).
 
-Run `node --test`.
+- `"appStoreUrl": null` (before launch): the landing pages show "Coming soon to the App Store".
+- An `https://apps.apple.com/…` link: the landing pages show the App Store badge from `src/img/badges/` (path set in `badges`), linked to the app. If a badge file is missing, that page keeps the "Coming soon" line and the build prints a warning.
+- Any other value stops the build.
 
-## App Store badge
+**`identity.json`** holds the publisher details for the legal pages. The build requires it and refuses to run with missing or placeholder values. It is git-ignored and must never be committed. Copy `identity.example.json` and fill in:
 
-`site.config.json` decides what the home pages show under the lead:
+```json
+{
+  "name": "YOUR NAME",
+  "street": "YOUR STREET AND NUMBER",
+  "postalCode": "YOUR POSTAL CODE",
+  "city": "YOUR CITY",
+  "countryDe": "YOUR COUNTRY IN GERMAN",
+  "countryEn": "YOUR COUNTRY IN ENGLISH",
+  "email": "YOUR CONTACT EMAIL",
+  "phone": "",
+  "vatId": ""
+}
+```
 
-- `"appStoreUrl": null` (now, before launch): the line "Coming soon to the App Store" / "Yakında App Store'da".
-- An `https://apps.apple.com/…` link: Apple's black "Download on the App Store" badge of each language, linked to it. The badge files are copied unmodified, shown 48 px high with clear space around them. If a language's badge file is missing, that page keeps the line and the build prints a warning.
+`phone` and `vatId` are optional; all other keys are required.
 
-Any other value of `appStoreUrl` stops the build.
+## Contact
 
-### After launch
+app.onandoff@gmail.com
 
-1. Download the official black "Download on the App Store" badges, English and Turkish, from Apple's App Store Marketing Tools (toolbox.marketingtools.apple.com), unmodified, as SVG.
-2. Save them as `src/img/badges/app-store-en.svg` and `src/img/badges/app-store-tr.svg`.
-3. Set `appStoreUrl` in `site.config.json` to the app's App Store link.
-4. Run `node build.mjs` (check that it prints no warning), then commit and push.
+## License
 
-## Where things are
-
-- `src/layout.html`: the page skeleton
-- `src/partials/`: header and footers
-- `src/pages/`: one template per page and language
-- `src/styles.css`: the styles
-- `src/img/`: the app icon (also the favicon and touch icon) and the screenshots of each language, copied to `docs/img/`
-- `site.config.json`: the App Store link and the badge files
-- `build.mjs`: validation, rendering and the list of pages
+Content and code: all rights reserved.
