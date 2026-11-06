@@ -1045,7 +1045,7 @@ describe('images', () => {
     }
   });
 
-  it('the icon is 1024 by 1024, the screenshots 1179 by 2556, all PNG', () => {
+  it('the icon is 1024 by 1024, the screenshots 520 by 1127 (2x the shown width), all PNG', () => {
     const size = (path) => {
       const bytes = site.get(path);
       assert.equal(bytes.toString('latin1', 1, 4), 'PNG', path);
@@ -1053,10 +1053,20 @@ describe('images', () => {
     };
     assert.deepEqual(size('img/app-icon.png'), [1024, 1024]);
     for (const path of IMAGES.filter((image) => image.includes('shot-'))) {
-      assert.deepEqual(size(path), [1179, 2556], path);
+      assert.deepEqual(size(path), [520, 1127], path);
     }
-    // At 260 wide, the screenshots keep their proportions at 564 high.
-    assert.equal(Math.round((260 * 2556) / 1179), 564);
+  });
+
+  it('the width and height of each screenshot keep the proportions of its file', () => {
+    for (const path of ['index.html', 'tr/index.html']) {
+      for (const shot of images(site.get(path)).filter(({ src }) => src.includes('/shot-'))) {
+        const bytes = site.get(posix.normalize(posix.join(posix.dirname(path), shot.src)));
+        const [width, height] = [bytes.readUInt32BE(16), bytes.readUInt32BE(20)];
+        assert.equal(Number(shot.height), Math.round((Number(shot.width) * height) / width), shot.src);
+        // Sharp on 2x screens: the file is at least twice the shown width.
+        assert.ok(width >= 2 * Number(shot.width), shot.src);
+      }
+    }
   });
 
   for (const [path, html] of htmlFiles) {
