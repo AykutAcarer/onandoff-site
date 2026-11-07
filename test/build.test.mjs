@@ -55,6 +55,8 @@ const TR_LINKS = ['Destek', 'Gizlilik Politikası', 'Kullanım Şartları', 'Kü
 
 const IMAGES = [
   'img/app-icon.png',
+  'img/badges/app-store-en.svg',
+  'img/badges/app-store-tr.svg',
   'img/en/shot-1.png',
   'img/en/shot-2.png',
   'img/en/shot-3.png',
@@ -739,12 +741,20 @@ const APP_STORE_URL = 'https://apps.apple.com/app/on-off/id1234567890';
 const BADGE_SVG =
   '<svg xmlns="http://www.w3.org/2000/svg" width="119.66407" height="40" viewBox="0 0 119.66407 40"><rect width="119.66407" height="40"/></svg>';
 const CONFIG = JSON.parse(readFileSync(join(ROOT, 'site.config.json'), 'utf8'));
+// The live link of the committed config.
+const LIVE_URL = 'https://apps.apple.com/app/id6829474719';
+const prelaunch = { ...CONFIG, appStoreUrl: null };
 const launched = { ...CONFIG, appStoreUrl: APP_STORE_URL };
+// The site before launch: the committed config without the link.
+const prelaunchSite = renderSite(VALID, { config: prelaunch });
+// The source images with the given badges only, as test files.
 const withBadges = (...langs) => {
   const all = readImages();
+  for (const lang of LANGS) all.delete(CONFIG.badges[lang]);
   for (const lang of langs) all.set(CONFIG.badges[lang], Buffer.from(BADGE_SVG));
   return all;
 };
+const LANGS = ['en', 'tr'];
 const collect = () => {
   const warnings = [];
   return { warnings, warn: (warning) => warnings.push(warning) };
@@ -755,13 +765,34 @@ describe('the home pages', () => {
     const html = site.get(text.path);
     const main = mainOf(html);
 
-    it(`${lang}: the hero has the name, tagline, lead and the availability line`, () => {
-      assert.deepEqual(elements(main, 'h1'), ['On & Off']);
-      const hero = main.slice(0, main.indexOf('</section>'));
+    it(`${lang}: before launch, the hero has the name, tagline, lead and the availability line`, () => {
+      const before = prelaunchSite.get(text.path);
+      const beforeMain = mainOf(before);
+      assert.deepEqual(elements(beforeMain, 'h1'), ['On & Off']);
+      const hero = beforeMain.slice(0, beforeMain.indexOf('</section>'));
       assert.deepEqual(elements(hero, 'p'), [text.tagline, text.lead, text.availability]);
       assert.ok(hero.includes('<p class="availability">'));
-      assert.ok(!html.includes('apps.apple.com'));
-      assert.ok(!html.includes('img/badges/'));
+      assert.ok(!before.includes('apps.apple.com'));
+      assert.ok(!before.includes('img/badges/'));
+    });
+
+    it(`${lang}: as committed, the hero has the name, tagline, lead and the linked official badge`, () => {
+      assert.deepEqual(elements(main, 'h1'), ['On & Off']);
+      const hero = main.slice(0, main.indexOf('</section>'));
+      assert.deepEqual(elements(hero, 'p'), [text.tagline, text.lead, '']);
+      assert.ok(!hero.includes('class="availability"'));
+      const link = hero.match(
+        /<p class="store"><a class="store-badge" href="([^"]+)">(<img [^>]+>)<\/a><\/p>/,
+      );
+      assert.ok(link, lang);
+      assert.equal(link[1], LIVE_URL);
+      const badge = attributes(link[2]);
+      assert.equal(badge.alt, text.badgeAlt);
+      assert.ok(Number(badge.height) >= 40, badge.height);
+      const target = posix.normalize(posix.join(posix.dirname(text.path), badge.src));
+      assert.equal(target, `img/badges/app-store-${lang}.svg`);
+      const svg = readFileSync(join(ROOT, 'src', target), 'utf8');
+      assert.equal(badge.width, String(badgeWidth(svg)));
     });
 
     it(`${lang}: the icon is 120 by 120, with its alt text`, () => {
@@ -862,7 +893,7 @@ describe('the home pages', () => {
 describe('the App Store badge', () => {
   it('without an App Store link: the availability line, and no warning', () => {
     const { warnings, warn } = collect();
-    const html = renderSite(VALID, { config: CONFIG, images: withBadges('en', 'tr'), warn });
+    const html = renderSite(VALID, { config: prelaunch, images: withBadges('en', 'tr'), warn });
     assert.ok(html.get('index.html').includes('<p class="availability">Coming soon to the App Store</p>'));
     assert.ok(html.get('tr/index.html').includes('<p class="availability">Yakında App Store&#39;da</p>'));
     for (const path of ['index.html', 'tr/index.html']) {
@@ -946,12 +977,17 @@ describe('the App Store badge', () => {
 });
 
 describe('site.config.json', () => {
-  it('as committed: no App Store link yet, and the two badge paths', () => {
+  it('as committed: the live App Store link, and the two badge paths', () => {
     assert.deepEqual(CONFIG, {
-      appStoreUrl: null,
+      appStoreUrl: LIVE_URL,
       badges: { en: 'img/badges/app-store-en.svg', tr: 'img/badges/app-store-tr.svg' },
     });
     assert.deepEqual(loadConfig(join(ROOT, 'site.config.json')), { config: CONFIG });
+  });
+
+  it('accepts both states: no link yet (null) and a live link', () => {
+    assert.deepEqual(validateConfig(prelaunch), []);
+    assert.deepEqual(validateConfig({ ...CONFIG, appStoreUrl: LIVE_URL }), []);
   });
 
   for (const url of [
@@ -1152,8 +1188,15 @@ describe('external addresses', () => {
     return count;
   };
 
-  it('none on the home pages but the Open Graph image; only the known links on legal pages', () => {
-    assert.ok(check(site, false) > 0);
+  it('before launch, none on the home pages but the Open Graph image; only the known links on legal pages', () => {
+    assert.ok(check(prelaunchSite, false) > 0);
+  });
+
+  it('as committed, the live App Store link on the home pages only', () => {
+    assert.ok(check(site, true) > 0);
+    for (const path of ['index.html', 'tr/index.html']) {
+      assert.ok(site.get(path).includes(`href="${LIVE_URL}"`), path);
+    }
   });
 
   it('once launched, the App Store link appears on the home pages only', () => {
