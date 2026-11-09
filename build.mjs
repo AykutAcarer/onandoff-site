@@ -222,31 +222,31 @@ const META = {
   privacy: {
     en: {
       title: 'Privacy Policy — On & Off',
-      description: 'On & Off collects no personal data. The privacy policy of the iPhone app.',
+      description: 'On & Off collects no personal data. The privacy policy of the app for iPhone and Android.',
     },
     tr: {
       title: 'Gizlilik Politikası — On & Off',
-      description: 'On & Off hiçbir kişisel veri toplamaz. iPhone uygulamasının gizlilik politikası.',
+      description: 'On & Off hiçbir kişisel veri toplamaz. iPhone ve Android uygulamasının gizlilik politikası.',
     },
   },
   terms: {
     en: {
       title: 'Terms of Use — On & Off',
-      description: 'The terms of use of the On & Off iPhone app.',
+      description: 'The terms of use of the On & Off app for iPhone and Android.',
     },
     tr: {
       title: 'Kullanım Şartları — On & Off',
-      description: 'On & Off iPhone uygulamasının kullanım şartları.',
+      description: 'On & Off iPhone ve Android uygulamasının kullanım şartları.',
     },
   },
   support: {
     en: {
       title: 'Support — On & Off',
-      description: 'Contact and quick answers for the On & Off iPhone app.',
+      description: 'Contact and quick answers for the On & Off app for iPhone and Android.',
     },
     tr: {
       title: 'Destek — On & Off',
-      description: 'On & Off iPhone uygulaması için iletişim ve kısa cevaplar.',
+      description: 'On & Off iPhone ve Android uygulaması için iletişim ve kısa cevaplar.',
     },
   },
 };

@@ -1157,6 +1157,8 @@ describe('external addresses', () => {
     'reportaproblem.apple.com',
     'docs.github.com',
     'datenschutz.hessen.de',
+    'policies.google.com',
+    'support.google.com',
   ];
 
   const externalUrls = (html) =>
@@ -1210,6 +1212,200 @@ describe('external addresses', () => {
         const scheme = href.match(/^([a-z][\w+.-]*):/i)?.[1];
         assert.ok(scheme === undefined || scheme === 'https' || scheme === 'mailto', `${path}: ${href}`);
       }
+    }
+  });
+});
+
+describe('Android on the legal and support pages', () => {
+  const APPLE_PRIVACY = 'https://www.apple.com/legal/privacy/';
+  const GOOGLE_PRIVACY = 'https://policies.google.com/privacy';
+  const APPLE_REFUND = 'https://reportaproblem.apple.com';
+  const GOOGLE_REFUND = 'https://support.google.com/googleplay/answer/2479637';
+  const DATE = {
+    en: 'Effective date: 9 November 2026 · Version 1.1',
+    tr: 'Yürürlük tarihi: 9 Kasım 2026 · Sürüm 1.1',
+  };
+  const langOf = (path) => (path.startsWith('tr/') ? 'tr' : 'en');
+
+  /** The text under an h2, up to the next h2; the heading may carry a number such as "3.". */
+  const section = (html, heading) => {
+    const parts = mainOf(html).split(/(?=<h2\b)/);
+    const part = parts.find((candidate) => {
+      const match = candidate.match(/^<h2\b[^>]*>([\s\S]*?)<\/h2>/);
+      return match && textOf(match[1]).replace(/^\d+\.\s*/, '') === heading;
+    });
+    assert.ok(part, `h2 "${heading}"`);
+    // Links are inline: drop their tags without the space textOf puts in.
+    return textOf(part.replace(/^<h2\b[^>]*>[\s\S]*?<\/h2>/, '').replace(/<\/?a\b[^>]*>/g, ''));
+  };
+
+  const hasLink = (html, url, text = url) =>
+    [...mainOf(html).matchAll(/<a href="([^"]+)">([\s\S]*?)<\/a>/g)].some(
+      ([, href, inner]) => href === url && textOf(inner) === text,
+    );
+
+  const PRIVACY = {
+    'privacy/index.html': [
+      ['Platforms', 'On & Off is available for iPhone (App Store) and Android (Google Play). This policy applies to both.'],
+      [
+        'Where your data is stored',
+        "Your calendars, shifts and notes are stored only on your device. On iPhone they are included in your iCloud or computer backup if you use one. On Android they are included in your device's Google backup if backup is turned on. We have no server and cannot access your data.",
+      ],
+      [
+        'Purchases',
+        "On & Off Pro is sold through the App Store (Apple) or Google Play (Google). The store processes your payment and tells the app whether you own Pro. We never receive your payment details, your name or your e-mail address. Apple's or Google's privacy policy applies to the purchase.",
+      ],
+      [
+        'Permissions on Android',
+        'The Android app asks for no permissions. It uses internet access only to communicate with Google Play for purchases and to open links you tap.',
+      ],
+      [
+        'Statistics and crash reports from Apple and Google',
+        'If you have chosen to share usage and diagnostic data with Apple or Google, they may give us aggregated, anonymous statistics such as crash rates. We cannot identify you from them.',
+      ],
+      [
+        'Deleting your data',
+        'Use Settings › Delete all data in the app, or uninstall the app. Copies in your device backup (iCloud or Google) are managed by Apple or Google according to your backup settings.',
+      ],
+    ],
+    'tr/privacy/index.html': [
+      ['Platformlar', 'On & Off, iPhone (App Store) ve Android (Google Play) için kullanılabilir. Bu politika ikisi için de geçerlidir.'],
+      [
+        'Verilerin nerede saklanır',
+        "Takvimlerin, vardiyaların ve notların yalnızca cihazında saklanır. iPhone'da, kullanıyorsan iCloud ya da bilgisayar yedeğine dahildir. Android'de, yedekleme açıksa cihazının Google yedeğine dahildir. Sunucumuz yoktur ve verilerine erişemeyiz.",
+      ],
+      [
+        'Satın almalar',
+        "On & Off Pro, App Store (Apple) ya da Google Play (Google) üzerinden satılır. Ödemeni mağaza işler ve uygulamaya Pro'ya sahip olup olmadığını bildirir. Ödeme bilgilerini, adını ya da e-posta adresini hiçbir zaman almayız. Satın alma için Apple'ın ya da Google'ın gizlilik politikası geçerlidir.",
+      ],
+      [
+        "Android'de izinler",
+        'Android uygulaması hiçbir izin istemez. İnternet erişimini yalnızca satın almalar için Google Play ile iletişim kurmak ve dokunduğun bağlantıları açmak için kullanır.',
+      ],
+      [
+        "Apple ve Google'dan gelen istatistikler ve çökme raporları",
+        'Kullanım ve tanılama verilerini Apple ya da Google ile paylaşmayı seçtiysen, bize çökme oranları gibi toplu ve anonim istatistikler sunabilirler. Bunlardan seni tanımlayamayız.',
+      ],
+      [
+        'Verilerini silme',
+        "Uygulamada Ayarlar › Tüm verileri sil'i kullan ya da uygulamayı kaldır. Cihaz yedeğindeki kopyalar (iCloud ya da Google), yedekleme ayarlarına göre Apple ya da Google tarafından yönetilir.",
+      ],
+    ],
+  };
+
+  const TERMS = {
+    'terms/index.html': [
+      [
+        'Purchases',
+        "Pro is a one-time in-app purchase through the App Store or Google Play. The store's terms apply to payment and refunds. Family Sharing is available only on the App Store. A purchase on one store does not carry over to the other.",
+      ],
+      [
+        'Refunds',
+        "Request refunds from Apple (reportaproblem.apple.com) or Google Play (see Google Play's refund help: https://support.google.com/googleplay/answer/2479637).",
+      ],
+      ['Refunds', 'Your statutory consumer rights remain unaffected.'],
+    ],
+    'tr/terms/index.html': [
+      [
+        'Satın almalar',
+        "Pro, App Store ya da Google Play üzerinden yapılan tek seferlik bir uygulama içi satın almadır. Ödeme ve iadeler için mağazanın şartları geçerlidir. Aile Paylaşımı yalnızca App Store'da kullanılabilir. Bir mağazadaki satın alma diğerine aktarılmaz.",
+      ],
+      [
+        'İadeler',
+        "İade taleplerini Apple'a (reportaproblem.apple.com) ya da Google Play'e ilet (Google Play iade yardımı: https://support.google.com/googleplay/answer/2479637).",
+      ],
+      ['İadeler', 'Yasal tüketici hakların saklıdır.'],
+    ],
+  };
+
+  const SUPPORT = {
+    'support/index.html': {
+      iphone: 'Quick answers: iPhone',
+      android: 'Quick answers: Android',
+      iphoneQuestion: 'How do I move to a new iPhone?',
+      answers: [
+        [
+          'Where is my data stored?',
+          "Only on this device. There's no account and no server. Your data is included in your device's Google backup if backup is turned on.",
+        ],
+        [
+          'How do I move to a new device?',
+          'Set up your new device with the same Google account and restore its backup; your calendars come with it. To get Pro back, tap Restore Purchase in Settings.',
+        ],
+        [
+          'Does Pro bought on iPhone work on Android?',
+          'No. App Store and Google Play purchases are separate, and the app has no account to link them.',
+        ],
+      ],
+    },
+    'tr/support/index.html': {
+      iphone: 'Kısa cevaplar: iPhone',
+      android: 'Kısa cevaplar: Android',
+      iphoneQuestion: "Yeni bir iPhone'a nasıl geçerim?",
+      answers: [
+        [
+          'Verilerim nerede saklanıyor?',
+          'Yalnızca bu cihazda. Hesap ve sunucu yok. Verilerin, yedekleme açıksa cihazının Google yedeğine dahildir.',
+        ],
+        [
+          'Yeni bir cihaza nasıl geçerim?',
+          "Yeni cihazını aynı Google hesabıyla kur ve yedeğini geri yükle; takvimlerin de gelir. Pro'yu geri almak için Ayarlar'da Satın Alımı Geri Yükle'ye dokun.",
+        ],
+        [
+          "iPhone'da alınan Pro Android'de çalışır mı?",
+          'Hayır. App Store ve Google Play satın alımları ayrıdır; uygulamada bunları bağlayacak bir hesap yok.',
+        ],
+      ],
+    },
+  };
+
+  for (const [path, sections] of Object.entries(PRIVACY)) {
+    it(`${path}: has the Android sections with their exact texts`, () => {
+      for (const [heading, text] of sections) {
+        assert.ok(section(site.get(path), heading).includes(text), heading);
+      }
+    });
+
+    it(`${path}: links the privacy policies of Apple and Google`, () => {
+      assert.ok(hasLink(site.get(path), APPLE_PRIVACY));
+      assert.ok(hasLink(site.get(path), GOOGLE_PRIVACY));
+    });
+  }
+
+  for (const [path, sections] of Object.entries(TERMS)) {
+    it(`${path}: has the purchase and refund texts for both stores`, () => {
+      for (const [heading, text] of sections) {
+        assert.ok(section(site.get(path), heading).includes(text), heading);
+      }
+    });
+
+    it(`${path}: links the refund pages of Apple and Google Play`, () => {
+      assert.ok(hasLink(site.get(path), APPLE_REFUND, 'reportaproblem.apple.com'));
+      assert.ok(hasLink(site.get(path), GOOGLE_REFUND));
+    });
+  }
+
+  for (const path of [...Object.keys(PRIVACY), ...Object.keys(TERMS)]) {
+    it(`${path}: has the new effective date`, () => {
+      assert.ok(site.get(path).includes(`<p class="meta">${DATE[langOf(path)]}</p>`));
+    });
+  }
+
+  for (const [path, { iphone, android, iphoneQuestion, answers }] of Object.entries(SUPPORT)) {
+    it(`${path}: has an Android part with its answers, after the iPhone part it keeps`, () => {
+      const html = site.get(path);
+      const androidPart = section(html, android);
+      for (const [question, answer] of answers) {
+        assert.ok(androidPart.includes(`${question} ${answer}`), question);
+      }
+      assert.ok(section(html, iphone).includes(iphoneQuestion));
+      assert.ok(mainOf(html).indexOf(`>${iphone}<`) < mainOf(html).indexOf(`>${android}<`));
+    });
+  }
+
+  it('the home pages have no Google Play link yet', () => {
+    for (const path of ['index.html', 'tr/index.html']) {
+      assert.ok(!/google/i.test(site.get(path)), path);
     }
   });
 });
